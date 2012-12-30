@@ -1,3 +1,4 @@
+# coding=utf-8
 #BEMStaticFracture
 import math
 class Data:
@@ -502,7 +503,9 @@ def plotTable(table, imageName):
     import matplotlib.pyplot as plt
     import pylab as pl
     plt.plot(table.relativeOffset, table.relativeIntensityCoefficient, linewidth = 3.0)
-    plt.title(imageName)
+    #plt.title(imageName)
+    plt.xlabel('lg (relativeOffset)')    # обозначение оси абсцисс
+    plt.ylabel('Knum / Ktheor')    # обозначение оси ординат
     pl.savefig(imageName)
     plt.show()
     return
