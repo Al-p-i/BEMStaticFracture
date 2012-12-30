@@ -2,7 +2,7 @@
 #BEMStaticFracture
 import math
 class Data:
-    """data"""
+    """input and intermediate data"""
     #to be input from input.csv
     G = 0.0
     v = 0.0
@@ -28,7 +28,7 @@ class TableSigma:
         self.arraySigma = []
         self.X = []
         self.Y = []
-        self.charInfo = "NULL"
+        self.tableName = "NULL"
 
 
 
@@ -67,7 +67,7 @@ def fillSpecialInfluenceCoefficientMatrix(multipleCoef, elemLength, N, elementX)
     for i in range(0, N):
         specialCoefficientMatrix.append([])
         for j in range(0, N):
-            if(j == 0 or j == N - 1):
+            if j == 0 or j == N - 1:
                 specialCoefficientMatrix[i].insert(j, countSpecianInfluenceCoefficient(multipleCoef, elemLength, elementX[i], elementX[j]))
             else:
                 specialCoefficientMatrix[i].insert(j, countInfluenceCoefficient(multipleCoef, elemLength, elementX[i], elementX[j]))
@@ -113,22 +113,17 @@ def writeDataForSlau(fileName, N, specialCoefficientMatrix, pressure):
 
 
 def execSlau(fileName):
-    ##TODO wait for slau.exe finish writing out.csv
-    cmd = 'slau.exe'
+    cmd = fileName
     import subprocess
-    #PIPE = subprocess.PIPE
     p = subprocess.Popen(cmd, shell = True)
     p.wait()
-    print '\nslau exec finished'
+    print '\nslau solved'
 
 
 def readOut(fileName):
     """read input csv"""
     import csv
     with open(fileName, 'rb') as csvfile:
-        #arrayD = [row for row in csv.reader(csvfile, delimiter=';')]
-        #for i in range(0, len(arrayD)):
-        #    arrayD.append()
         arrayD = []
         for row in csv.reader(csvfile):
             for value in row:
@@ -156,7 +151,7 @@ def countDeformationEnergy(multipleCoef, elemLength, N, elementX, pressure):
     # count deformation energy
     deformationEnergy = 0.0
     for i in range(0, N):
-        deformationEnergy = deformationEnergy - (data.arrayD[i] * pressure[i] * elemLength/2.0)
+        deformationEnergy -= (data.arrayD[i] * pressure[i] * elemLength/2.0)
     return deformationEnergy
 
 
@@ -252,7 +247,7 @@ def  sigmaXY(N   , G  , arrayD, X  , V  , arrayX, Y  , elemLength  ):
         sigmaXY += sigmaXYi(G, arrayD[i], X, V, arrayX[i], Y, elemLength)
     return sigmaXY
 
-
+#TODO strange
 def  specialSigmaYYforExternalOx( N, G  , arrayD, X  , V  , arrayX, elemLength, fromPoint, toPoint  ):
     theoreticalIntensityCoefficient = countTheoreticalIntensityCoefficient(data.pressure, data.length, data.elemLength)
     #print 'theoreticalIntensityCoefficient',theoreticalIntensityCoefficient
@@ -283,66 +278,9 @@ def countSigmaTheoretical (r, intensityCoefficient):
 
 
 
-
-"""
-def countArraySigmaYY(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, offset, precisionCoefficient):
-    arraySigmaYY = []
-    X = 0.0
-    Y = 0.0
-    step = data.elemLength/precisionCoefficient
-    assert(len(data.arrayD) != 0)
-    for i in range(0, precisionCoefficient * data.N + 2* offset +1):
-        arraySigmaYY.append([])
-        for j in range(0, precisionCoefficient * data.N + 2 * offset + 1):
-            X = data.fromPoint - offset * step + i  * step
-            Y = data.fromPoint - offset * step + j  * step
-            if((X > fromPoint - 1.2 * elemLength) and (X < toPoint + 1.2 * elemLength) and (Y > -1.2 * elemLength and Y < 1.2 * elemLength)):
-                arraySigmaYY[i].insert(j, 0.0)
-            else:
-                arraySigmaYY[i].insert(j, sigmaYY(data.N, data.G, data.arrayD, X, data.v, data.elementX, Y, data.elemLength))
-    return arraySigmaYY
-
-
-def countArraySigmaXY(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, offset, precisionCoefficient):
-    arraySigmaXY = []
-    X = 0.0
-    Y = 0.0
-    step = data.elemLength/precisionCoefficient
-    assert(len(data.arrayD) != 0)
-    for i in range(0, precisionCoefficient * data.N + 2* offset +1):
-        arraySigmaXY.append([])
-        for j in range(0, precisionCoefficient * data.N + 2 * offset + 1):
-            X = data.fromPoint - offset * step + i  * step
-            Y = data.fromPoint - offset * step + j  * step
-            if((X > data.fromPoint - 1.2 * data.elemLength) and (X < data.toPoint + 1.2 * data.elemLength) and (Y > -1.2 * data.elemLength and Y < 1.2 * data.elemLength)):
-                arraySigmaXY[i].insert(j, 0.0)
-            else:
-                arraySigmaXY[i].insert(j, sigmaXY(data.N, data.G, data.arrayD, X, data.v, data.elementX, Y, data.elemLength))
-    return arraySigmaXY
-
-
-def countArraySigmaXX(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, offset, precisionCoefficient):
-    arraySigmaXX = []
-    X = 0.0
-    Y = 0.0
-    step = elemLength/precisionCoefficient
-    assert(len(arrayD) != 0)
-    for i in range(0, precisionCoefficient * N + 2* offset +1):
-        arraySigmaXX.append([])
-        for j in range(0, precisionCoefficient * N + 2 * offset + 1):
-            X = fromPoint - offset * step + i  * step
-            Y = fromPoint - offset * step + j  * step
-            if((X > fromPoint - 1.2 * elemLength) and (X < toPoint + 1.2 * elemLength) and (Y > -1.2 * elemLength and Y < 1.2 * elemLength)):
-                arraySigmaXX[i].insert(j, 0.0)
-            else:
-                arraySigmaXX[i].insert(j, sigmaXX(N, G, arrayD, X, v, elementX, Y, elemLength))
-    return arraySigmaXX
-"""
-
-
-def countTableSigma(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, offset, precisionCoefficient, charInfo):
-    tableSigma =  TableSigma()
-    tableSigma.charInfo = charInfo
+def countTableSigma(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, offset, precisionCoefficient, tableName):
+    tableSigma = TableSigma()
+    tableSigma.tableName = tableName
 
     step = elemLength/precisionCoefficient
     assert(len(arrayD) != 0)
@@ -357,28 +295,23 @@ def countTableSigma(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, o
         Y = fromPoint - offset * step + j  * step
         tableSigma.Y.insert(j, Y)
 
-    print "xMax = ", xMax,"yMax = ", yMax
-    print tableSigma.arraySigma
-
     additionlOffset = 1.2
     for i in range(0, xMax +1):
         tableSigma.arraySigma.append([])
         for j in range(0,  yMax+ 1):
-            #print "i =", i
-            #print "j =", j
             X = tableSigma.X[i]
             Y = tableSigma.Y[j]
 
-            if(( X > fromPoint - additionlOffset * elemLength) and (X < toPoint + additionlOffset * elemLength) and (Y > - additionlOffset * elemLength and Y < additionlOffset * elemLength)):
+            if( X > fromPoint - additionlOffset * elemLength) and (X < toPoint + additionlOffset * elemLength) and (Y > - additionlOffset * elemLength and Y < additionlOffset * elemLength):
                 tableSigma.arraySigma[i].insert(j, 0.0)
             else:
-                if tableSigma.charInfo == "sigmaXX" :
+                if tableSigma.tableName == "sigmaXX" :
                     tableSigma.arraySigma[i].insert(j, sigmaXX(N, G, arrayD, X, v, elementX, Y, elemLength))
 
-                if tableSigma.charInfo == "sigmaXY" :
+                if tableSigma.tableName == "sigmaXY" :
                     tableSigma.arraySigma[i].insert(j, sigmaXY(N, G, arrayD, X, v, elementX, Y, elemLength))
 
-                if tableSigma.charInfo == "sigmaYY" :
+                if tableSigma.tableName == "sigmaYY" :
                     tableSigma.arraySigma[i].insert(j, sigmaYY(N, G, arrayD, X, v, elementX, Y, elemLength))
 
     return tableSigma
@@ -389,12 +322,11 @@ def plotSigma(tableSigma):
     import numpy as np
     import pylab as pl
     from matplotlib import cm
-    import matplotlib
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
+
     x = len(tableSigma.arraySigma)
     y = len(tableSigma.arraySigma[0])
-    #X, Y = np.meshgrid(np.arange(-x/2.0, x/2.0, 1), np.arange(0,y,1))
     X, Y = np.meshgrid(tableSigma.Y, tableSigma.X)
     Z = np.zeros((x, y), 'Float32')
     for i in range(0, x):
@@ -403,74 +335,37 @@ def plotSigma(tableSigma):
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.plot_surface(X = X, Y = Y, Z = Z, color = 'GREEN', rstride=1, cstride=1, cmap=cm.jet , linewidth=0, antialiased = True)
-    plt.title(tableSigma.charInfo + ", MPa")
+    plt.title(tableSigma.tableName + ", MPa")
     plt.xlabel('y, m')
     plt.ylabel('x, m')
-    pl.savefig(tableSigma.charInfo)
+    pl.savefig(tableSigma.tableName)
     plt.show()
     return
 
 
 def plotContour(tableSigma):
     arraySigma = tableSigma.arraySigma
-    imageName = tableSigma.charInfo
+    imageName = tableSigma.tableName
 
     import numpy as np
     import pylab as pl
-    from matplotlib import cm
-    import matplotlib
     import matplotlib.pyplot as plt
-    ## Option (True/False) to fill the gaps between contours :
-    contourfillflag = True
-    ## Option (True/False) to only fill the gaps between contours, without drawing
-    ## the contours :
-    contourfillonlyflag = True
-    ## Contour levels can be True (automatic), the number of leves or the list of
-    ## z levels :
-    # contourlevels = True
-    contourlevels = 100
-    # contourlevels = linspace(0.0,1.0,10)
-    # contourlevels = (0.0,0.2,0.4,0.6,0.8,1.0)
-    ## Option (True/False) to show automatic contour labels  :
-    contourlabelsflag = True
-    ## Option (True/False) to show a vertical color bar of the contour levels  :
-    contourlevelsbarflag = True
-    ## Labels for x and y axis :
-    xlabeltext = r'x'; ylabeltext = r'y'
-    ## Plot title, here including TeX expressions (inside '$') :
-    titletext = imageName
-    ## Option (True/False) to show a grid of dashed lines :
-    gridflag = True
-    ##############################################################################
+
     x = len(arraySigma)
     y = len(arraySigma[0])
-    X, Y = np.meshgrid(np.arange(-x/2.0,x/2.0,1), np.arange(0,y,1))
+    X, Y = np.meshgrid(tableSigma.X, tableSigma.Y)
     Z = np.zeros((x,y), 'Float32')
     for i in range(0,x):
         for j in range(0,y):
             Z[i,j] = arraySigma[i][j]
-    if contourfillflag:
-        if contourlevels == True:
-            if not contourfillonlyflag:
-                c1 = pl.contour(x,y,z,colors='k')
-            c2 = pl.contourf(X,Y,Z)
-        else:
-            if not contourfillonlyflag:
-                c1 = pl.contour(X,Y,Z,contourlevels,colors='k')
-            c2 = pl.contourf(X,Y,Z,contourlevels)
-        if contourlevelsbarflag:
-            cb2 = pl.colorbar(c2)
-    else:
-        if contourlevels == True:
-            c1 = pl.contour(X,Y,Z)
-        else:
-            c1 = pl.contour(X,Y,Z,contourlevels)
-        if contourlevelsbarflag:
-            pl.colorbar(c1)
-    if contourlabelsflag and ((not contourfillflag) or (not contourfillonlyflag)):
-        l1 = clabel(c1)
-    plt.xlabel(xlabeltext); plt.ylabel(ylabeltext); plt.title(titletext)
-    plt.grid(gridflag)
+
+    contourlevels = 100
+
+    contourfield = pl.contourf(X,Y,Z,contourlevels)
+    colorbar = pl.colorbar(contourfield)
+
+    plt.xlabel('x'); plt.ylabel('y'); plt.title(imageName)
+    plt.grid(True)
     plt.savefig(imageName)
     plt.show()
     return
@@ -479,12 +374,11 @@ def plotContour(tableSigma):
 
 def countIntensityCoefficientByOffsetMethod(relationalOffset, N, G, arrayD, V, arrayX, elemLength, fromPoint, toPoint, length):
     X = fromPoint - relationalOffset * length/2.0
-#    print "specialSigmaYYforExternal Ox = ", ( specialSigmaYYforExternalOx ( N, G, arrayD, X, V, arrayX, elemLength, fromPoint, toPoint) * math.sqrt(2 * math.pi * (fromPoint - X)) )
     return specialSigmaYYforExternalOx ( N, G, arrayD, X, V, arrayX, elemLength, fromPoint, toPoint) * math.sqrt(2 * math.pi * (fromPoint - X))
 
 
-#function count table of K=K(x) for ploting
-def countCorelationTableIntensityCoefficient(startDegree, finishDegree, numberOfPoints, pressure, N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, length):
+def countCorrelationTableIntensityCoefficient(startDegree, finishDegree, numberOfPoints, pressure, N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, length):
+    """count table of K=K(x) for plotting"""
     theoreticalIntensityCoefficient = countTheoreticalIntensityCoefficient(pressure, length, elemLength)
     print "theoreticalIntensityCoefficient =", theoreticalIntensityCoefficient
 
@@ -503,9 +397,9 @@ def plotTable(table, imageName):
     import matplotlib.pyplot as plt
     import pylab as pl
     plt.plot(table.relativeOffset, table.relativeIntensityCoefficient, linewidth = 3.0)
-    #plt.title(imageName)
-    plt.xlabel('lg (relativeOffset)')    # обозначение оси абсцисс
-    plt.ylabel('Knum / Ktheor')    # обозначение оси ординат
+    plt.title(imageName)
+    plt.xlabel('lg (relativeOffset)')
+    plt.ylabel('Knum / Ktheor')
     pl.savefig(imageName)
     plt.show()
     return
@@ -525,77 +419,36 @@ if __name__ == '__main__':
     deformationEnergy1 = countDeformationEnergy(data.multipleCoef, data.elemLength, data.N, data.elementX, data.pressure)
 
 
-    #2.1 count sigmaXX and sigmaYY  and   plot sigmaXX and sigmaYY
-    charInfo = "sigmaXX"
-    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, charInfo)
+    #2.1 count and plot sigmaXX, sigmaYY and sigmaXX
+    tableName = "sigmaXX"
+    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigma(tableSigma)
     plotContour(tableSigma)
 
 
-    charInfo = "sigmaYY"
-    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, charInfo)
+    tableName = "sigmaYY"
+    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigma(tableSigma)
     plotContour(tableSigma)
 
 
-    charInfo = "sigmaXY"
-    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, charInfo)
+    tableName = "sigmaXY"
+    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigma(tableSigma)
     plotContour(tableSigma)
 
-    #import matplotlib.pyplot as plt
-    #plt.show()
 
     #2.2.1
     #theoreticalIntensityCoefficient = countTheoreticalIntensityCoefficient(data.pressure, data.length, data.elemLength)
     #print 'theoreticalIntensityCoefficient',theoreticalIntensityCoefficient
 
     #2.3 plotting the relative stress intensity factor of the relative    #count corelation intensity ciefficient
-    table = countCorelationTableIntensityCoefficient(1, 7, 10, data.pressure, data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength,  data.fromPoint, data.toPoint, data.length)
+    table = countCorrelationTableIntensityCoefficient(1, 7, 10, data.pressure, data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength,  data.fromPoint, data.toPoint, data.length)
 
 
     #2.4 plot relativeOffset and relativeIntensityCoefficient
     plotTable(table, 'relativeIntensityCoefficient')
 
-    """
-    import numpy as np
-    import pylab as pl
-    #from numpy import *
-    from matplotlib import cm
-    import matplotlib
-    import matplotlib.pyplot as plt2
-    from mpl_toolkits.mplot3d import Axes3D
-
-
-    #fig = plt.figure()
-    #ax = Axes3D(fig)
-
-
-
-    plt2.plot(table.relativeOffset, table.relativeIntensityCoefficient)
-    plt2.show()
-
-    #plt.imsave ("qwer")
-    #plt.savefig("plot")
-
-    #plt.show()
-
-
-
-
-    #compare with theoretical intensity coefficient
-    theoreticalIntensityCoefficient = countTheoreticalIntensityCoefficient(data.pressure, data.length, data.elemLength)
-    intensityCoefficientByOffsetMethod = countIntensityCoefficientByOffsetMethod(0.01, data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength,  data.fromPoint, data.toPoint, data.length)
-    # print 'intensityCoefficientByOffsetMethod1 = ', intensityCoefficientByOffsetMethod, '\t  ', 0.01,'\t  ', intensityCoefficientByOffsetMethod/ theoreticalIntensityCoefficient
-
-    intensityCoefficientByOffsetMethod = countIntensityCoefficientByOffsetMethod(0.0001, data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint,  data.length)
-    # print 'intensityCoefficientByOffsetMethod2 = ', intensityCoefficientByOffsetMethod, '\t  ', 0.0001,'\t  ', intensityCoefficientByOffsetMethod/ theoreticalIntensityCoefficient
-
-    intensityCoefficientByOffsetMethod = countIntensityCoefficientByOffsetMethod(0.000001, data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, data.length)
-    # print 'intensityCoefficientByOffsetMethod3 = ', intensityCoefficientByOffsetMethod, '\t  ', 0.000001,'\t  ', intensityCoefficientByOffsetMethod/ theoreticalIntensityCoefficient
-
-
-    """
 
     """
     #3 change data
