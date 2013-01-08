@@ -1,5 +1,9 @@
 # coding=utf-8
-#BEMStaticFracture
+"""
+Static fracture model with boundary element method
+Authors: Paderin, Pomosov
+2012
+"""
 import math
 class Data:
     """input and intermediate data"""
@@ -17,10 +21,13 @@ class Data:
     multipleCoef = 0.0
     elementX = []
     arrayD = []
-    
+
+
+
 class CorelationTableIntensityCoefficient:
     relativeOffset = []
     relativeIntensityCoefficient = []
+
 
 
 class TableSigma:
@@ -87,29 +94,28 @@ def writeDataForSlau(fileName, N, specialCoefficientMatrix, pressure):
     outfile = open(fileName, 'wb')
     writer = csv.writer(outfile)
 
-    # write data.N
+    #1 write data.N
     nArray = []
     nArray.insert(0, N)
-
     writer.writerow(nArray)
 
-    # write specialCoefficientMatrix
+    #2 write specialCoefficientMatrix
     for row in specialCoefficientMatrix:
         writer.writerow(row)
 
-    # write negPressure
+    #3 write negPressure
     negPressure = []
     for i in range(0, len(pressure)):
         negPressure.insert(i, -pressure[i])
-        
     writer.writerow(negPressure)
 
-    #initialApproximation = 0.0
+    #4 write initialApproximation
     initialApproximation = []
     for i in range(0, len(pressure)):
         initialApproximation.insert(i, 0.0)
 
     writer.writerow(initialApproximation)
+    return
 
 
 def execSlau(fileName):
@@ -118,6 +124,7 @@ def execSlau(fileName):
     p = subprocess.Popen(cmd, shell = True)
     p.wait()
     print '\nslau solved'
+    return
 
 
 def readOut(fileName):
@@ -172,7 +179,7 @@ def countTheoreticalIntensityCoefficient(pressure, length,elemLength):
 
 
 
-
+## derivatives ###################################
 def derivativeFxyy(X, V, Xi, Y, elemLength):
     return 1.0 / (4.0 * math.pi * (1 - V)) * (((X - Xi - elemLength / 2) ** 2 - Y ** 2) / (((X - Xi - elemLength / 2.0) ** 2 + Y ** 2) ** 2) - ((X - Xi + elemLength / 2) ** 2 - Y ** 2) / (((X - Xi + elemLength / 2) ** 2 + Y ** 2) ** 2))
     
@@ -209,6 +216,8 @@ def  Uyi(Di  , X  , V  , Xi  , Y  , elemLength  ):
     return Di * (2.0 * (1 - V) * derivativeFy(X, V, Xi, Y, elemLength) - Y * derivativeFyy(X, V, Xi, Y, elemLength))
 
 
+
+### deformation tensor ########
 def  sigmaXXi(G  , Di  , X  , V  , Xi  , Y  , elemLength  ):
     return 2.0 * G * Di * (derivativeFyy(X, V, Xi, Y, elemLength) + Y * derivativeFyyy(X, V, Xi, Y, elemLength))
 
@@ -247,12 +256,11 @@ def  sigmaXY(N   , G  , arrayD, X  , V  , arrayX, Y  , elemLength  ):
         sigmaXY += sigmaXYi(G, arrayD[i], X, V, arrayX[i], Y, elemLength)
     return sigmaXY
 
-#TODO strange
+
 def  specialSigmaYYforExternalOx( N, G  , arrayD, X  , V  , arrayX, elemLength, fromPoint, toPoint  ):
     theoreticalIntensityCoefficient = countTheoreticalIntensityCoefficient(data.pressure, data.length, data.elemLength)
     #print 'theoreticalIntensityCoefficient',theoreticalIntensityCoefficient
     sigmaTheoretical = countSigmaTheoretical (abs(X -fromPoint ), theoreticalIntensityCoefficient)
-
     assert ( not X>toPoint)
 #    print "X=", X
     sigmaYY = 0.0
@@ -273,7 +281,7 @@ def  specialSigmaYYforExternalOx( N, G  , arrayD, X  , V  , arrayX, elemLength, 
 
 def countSigmaTheoretical (r, intensityCoefficient):
     return intensityCoefficient / math.sqrt(2 *math.pi * r)
-#    return
+
 #################################################################################
 
 
@@ -296,9 +304,9 @@ def countTableSigma(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, o
         tableSigma.Y.insert(j, Y)
 
     additionlOffset = 1.2
-    for i in range(0, xMax +1):
+    for i in range(0, xMax + 1):
         tableSigma.arraySigma.append([])
-        for j in range(0,  yMax+ 1):
+        for j in range(0,  yMax + 1):
             X = tableSigma.X[i]
             Y = tableSigma.Y[j]
 
@@ -317,8 +325,31 @@ def countTableSigma(N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, o
     return tableSigma
 
 
+def countIntensityCoefficientByOffsetMethod(relationalOffset, N, G, arrayD, V, arrayX, elemLength, fromPoint, toPoint, length):
+    X = fromPoint - relationalOffset * length/2.0
+    return specialSigmaYYforExternalOx ( N, G, arrayD, X, V, arrayX, elemLength, fromPoint, toPoint) * math.sqrt(2 * math.pi * (fromPoint - X))
 
-def plotSigma(tableSigma):
+
+def countCorrelationTableIntensityCoefficient(startDegree, finishDegree, numberOfPoints, pressure, N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, length):
+    """count table of K=K(x) for plotting"""
+    theoreticalIntensityCoefficient = countTheoreticalIntensityCoefficient(pressure, length, elemLength)
+    print "theoreticalIntensityCoefficient =", theoreticalIntensityCoefficient
+
+    table = CorelationTableIntensityCoefficient()
+    stepDegree = (finishDegree - startDegree )*1.0 / numberOfPoints
+    for i in range(0, numberOfPoints+1):
+        table.relativeOffset.insert(i, (- (startDegree + i* stepDegree)))
+        intensityCoefficientByOffsetMethod = countIntensityCoefficientByOffsetMethod(10 **(- (startDegree + i* stepDegree)), N, G, arrayD, v, elementX, elemLength,  fromPoint, toPoint, length)
+        print "intensityCoefficientByOffsetMethod = ", intensityCoefficientByOffsetMethod
+        table.relativeIntensityCoefficient.insert(i, intensityCoefficientByOffsetMethod / theoreticalIntensityCoefficient)
+
+    return table
+
+
+
+### plotting #####################################################################
+def plotSigmaSurface(tableSigma):
+    """plots"""
     import numpy as np
     import pylab as pl
     from matplotlib import cm
@@ -343,7 +374,7 @@ def plotSigma(tableSigma):
     return
 
 
-def plotContour(tableSigma):
+def plotSigmaMap(tableSigma):
     arraySigma = tableSigma.arraySigma
     imageName = tableSigma.tableName
 
@@ -371,28 +402,6 @@ def plotContour(tableSigma):
     return
 
 
-
-def countIntensityCoefficientByOffsetMethod(relationalOffset, N, G, arrayD, V, arrayX, elemLength, fromPoint, toPoint, length):
-    X = fromPoint - relationalOffset * length/2.0
-    return specialSigmaYYforExternalOx ( N, G, arrayD, X, V, arrayX, elemLength, fromPoint, toPoint) * math.sqrt(2 * math.pi * (fromPoint - X))
-
-
-def countCorrelationTableIntensityCoefficient(startDegree, finishDegree, numberOfPoints, pressure, N, G, arrayD, v, elementX, elemLength, fromPoint, toPoint, length):
-    """count table of K=K(x) for plotting"""
-    theoreticalIntensityCoefficient = countTheoreticalIntensityCoefficient(pressure, length, elemLength)
-    print "theoreticalIntensityCoefficient =", theoreticalIntensityCoefficient
-
-    table = CorelationTableIntensityCoefficient()
-    stepDegree = (finishDegree - startDegree )*1.0 / numberOfPoints
-    for i in range(0, numberOfPoints+1):
-        table.relativeOffset.insert(i, (- (startDegree + i* stepDegree)))
-        intensityCoefficientByOffsetMethod = countIntensityCoefficientByOffsetMethod(10 **(- (startDegree + i* stepDegree)), N, G, arrayD, v, elementX, elemLength,  fromPoint, toPoint, length)
-        print "intensityCoefficientByOffsetMethod = ", intensityCoefficientByOffsetMethod
-        table.relativeIntensityCoefficient.insert(i, intensityCoefficientByOffsetMethod / theoreticalIntensityCoefficient)
-
-    return table
-
-
 def plotTable(table, imageName):
     import matplotlib.pyplot as plt
     import pylab as pl
@@ -403,6 +412,10 @@ def plotTable(table, imageName):
     pl.savefig(imageName)
     plt.show()
     return
+
+##################################################################################
+
+
 
 
 
@@ -421,21 +434,21 @@ if __name__ == '__main__':
 
     #2.1 count and plot sigmaXX, sigmaYY and sigmaXX
     tableName = "sigmaXX"
-    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
-    plotSigma(tableSigma)
-    plotContour(tableSigma)
+    tableSigmaXX = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
+    plotSigmaSurface(tableSigmaXX)
+    plotSigmaMap(tableSigmaXX)
 
 
     tableName = "sigmaYY"
-    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
-    plotSigma(tableSigma)
-    plotContour(tableSigma)
+    tableSigmaYY = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
+    plotSigmaSurface(tableSigmaYY)
+    plotSigmaMap(tableSigmaYY)
 
 
     tableName = "sigmaXY"
-    tableSigma = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
-    plotSigma(tableSigma)
-    plotContour(tableSigma)
+    tableSigmaXY = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
+    plotSigmaSurface(tableSigmaXY)
+    plotSigmaMap(tableSigmaXY)
 
 
     #2.2.1
