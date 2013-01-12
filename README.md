@@ -1,4 +1,4 @@
 BEMStaticFracture
 =================
 
-Boundary Element Method (BEM) for static fracture modeling
+Boundary Element Method (BEM) for static fracture under internal pressure modeling
