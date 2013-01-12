@@ -1,6 +1,7 @@
 # coding=utf-8
 """
-Static fracture model with boundary element method
+Static fracture under internal pressure model
+with boundary element method
 Authors: Paderin, Pomosov
 2012
 """
@@ -35,7 +36,7 @@ class TableSigma:
         self.arraySigma = []
         self.X = []
         self.Y = []
-        self.tableName = "NULL"
+        self.tableName = ''
 
 
 
@@ -421,7 +422,7 @@ def plotTable(table, imageName):
 
 if __name__ == '__main__':
     #1 fill data
-    data = readInput("input.csv")
+    data = readInput('input.csv')
     assert(int(data.N) == int(len(data.pressure)))
     data.length = abs(data.toPoint - data.fromPoint)
     data.elemLength = data.length / data.N
@@ -433,19 +434,19 @@ if __name__ == '__main__':
 
 
     #2.1 count and plot sigmaXX, sigmaYY and sigmaXX
-    tableName = "sigmaXX"
+    tableName = 'sigmaXX'
     tableSigmaXX = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigmaSurface(tableSigmaXX)
     plotSigmaMap(tableSigmaXX)
 
 
-    tableName = "sigmaYY"
+    tableName = 'sigmaYY'
     tableSigmaYY = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigmaSurface(tableSigmaYY)
     plotSigmaMap(tableSigmaYY)
 
 
-    tableName = "sigmaXY"
+    tableName = 'sigmaXY'
     tableSigmaXY = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigmaSurface(tableSigmaXY)
     plotSigmaMap(tableSigmaXY)
