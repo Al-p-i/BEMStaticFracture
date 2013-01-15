@@ -1,33 +1,34 @@
 # coding=utf-8
 """
-Static fracture under internal pressure model
-with boundary element method
+Static fracture under intrinsic pressure model with boundary element method
 Authors: Paderin, Pomosov
 2012
 """
 import math
 class Data:
     """input and intermediate data"""
-    #to be input from input.csv
-    G = 0.0
-    v = 0.0
-    N = 0
-    pressure = []
-    fromPoint = 0.0
-    toPoint = 0.0
+    def __init__(self):
+        #to be input from input.csv
+        self.G = 0.0
+        self.v = 0.0
+        self.N = 0
+        self.pressure = []
+        self.fromPoint = 0.0
+        self.toPoint = 0.0
 
-    #to be counted
-    length = 0.0
-    elemLength = 0.0
-    multipleCoef = 0.0
-    elementX = []
-    arrayD = []
+        #to be counted
+        self.length = 0.0
+        self.elemLength = 0.0
+        self.multipleCoef = 0.0
+        self.elementX = []
+        self.arrayD = []
 
 
 
 class CorelationTableIntensityCoefficient:
-    relativeOffset = []
-    relativeIntensityCoefficient = []
+    def __init__(self):
+        self.relativeOffset = []
+        self.relativeIntensityCoefficient = []
 
 
 
@@ -36,7 +37,7 @@ class TableSigma:
         self.arraySigma = []
         self.X = []
         self.Y = []
-        self.tableName = ''
+        self.tableName = "NULL"
 
 
 
@@ -422,7 +423,7 @@ def plotTable(table, imageName):
 
 if __name__ == '__main__':
     #1 fill data
-    data = readInput('input.csv')
+    data = readInput("input.csv")
     assert(int(data.N) == int(len(data.pressure)))
     data.length = abs(data.toPoint - data.fromPoint)
     data.elemLength = data.length / data.N
@@ -434,19 +435,19 @@ if __name__ == '__main__':
 
 
     #2.1 count and plot sigmaXX, sigmaYY and sigmaXX
-    tableName = 'sigmaXX'
+    tableName = "sigmaXX"
     tableSigmaXX = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigmaSurface(tableSigmaXX)
     plotSigmaMap(tableSigmaXX)
 
 
-    tableName = 'sigmaYY'
+    tableName = "sigmaYY"
     tableSigmaYY = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigmaSurface(tableSigmaYY)
     plotSigmaMap(tableSigmaYY)
 
 
-    tableName = 'sigmaXY'
+    tableName = "sigmaXY"
     tableSigmaXY = countTableSigma(data.N, data.G, data.arrayD, data.v, data.elementX, data.elemLength, data.fromPoint, data.toPoint, 20, 1, tableName)
     plotSigmaSurface(tableSigmaXY)
     plotSigmaMap(tableSigmaXY)
